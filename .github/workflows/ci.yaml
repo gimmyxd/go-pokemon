@@ -23,6 +23,10 @@ env:
   BUF_BETA_SUPPRESS_WARNINGS: 1
   GO_VERSION: 1.24
 
+  KOSLI_API_TOKEN: ${{ secrets.KOSLI_TOKEN }}
+  KOSLI_ORG: gimmyxd
+  FLOW_NAME: sdd-flow
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -65,3 +69,19 @@ jobs:
         with:
           default_author: github_actions
           add: 'pokemon'
+
+      -
+        name: setup kosli
+        if: github.event_name == 'workflow_dispatch'
+        uses: kosli-dev/setup-cli-action@v2
+      -
+        name: Kosli report proto artifact
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          kosli attest artifact pokemon \
+            --artifact-type dir \
+            --name go-generated-bindings \
+            --flow "${{ env.FLOW_NAME }}" \
+            --trail "$(git rev-parse HEAD)" \
+            --api-token "${{ env.KOSLI_API_TOKEN }}" \
+            --org "${{ env.KOSLI_ORG }}"
